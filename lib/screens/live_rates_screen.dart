@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/currency_service.dart';
 import '../widgets/custom_refresh_indicator.dart';
 
@@ -79,7 +80,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
               pinned: true,
               stretch: true,
               flexibleSpace: FlexibleSpaceBar(
-                title: const Text('Canlı Döviz Kurları'),
+                title:  Text('Canlı Döviz Kurları',style: GoogleFonts.nunitoSans(fontWeight: FontWeight.bold),),
                 background: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
