@@ -1,20 +1,6 @@
-<<<<<<< HEAD
-# kurtakip
-=======
-# kurtakip
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
->>>>>>> 6b6e15e (Initial commit)
+![kurtakip_img1](https://github.com/user-attachments/assets/71f82a54-1c37-43ac-bc21-eac369a37cd0)
+![kurtakip_img2](https://github.com/user-attachments/assets/5098486b-538a-495c-8a2a-ef3bb320652f)
+![kurtakip_img3](https://github.com/user-attachments/assets/dd02d316-47b9-4642-b38b-d49a64d40c8e)
+![kurtakip_img4](https://github.com/user-attachments/assets/53a6eb89-4ddc-4410-836b-fadc0fbf0502)
+![kurtakip_img5](https://github.com/user-attachments/assets/6e777cb3-7cca-468b-a3ea-41882e849632)
+![kurtakip_img6](https://github.com/user-attachments/assets/43edcea1-0ce5-45f1-a261-d07aaba51f41)
