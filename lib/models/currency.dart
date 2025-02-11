@@ -1,0 +1,48 @@
+class Currency {
+  final String code;
+  final String name;
+  final double amount;
+  final double currentRate;
+  final double initialRate;
+  final DateTime addedDate;
+
+  Currency({
+    required this.code,
+    required this.name,
+    required this.amount,
+    required this.currentRate,
+    double? initialRate,
+    DateTime? addedDate,
+  })  : initialRate = initialRate ?? currentRate,
+        addedDate = addedDate ?? DateTime.now();
+
+  double get totalValueInTRY => amount * currentRate;
+  double get initialValueInTRY => amount * initialRate;
+  
+  double get profitLoss => totalValueInTRY - initialValueInTRY;
+  
+  double get profitLossPercentage => 
+      ((currentRate - initialRate) / initialRate) * 100;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'code': code,
+      'name': name,
+      'amount': amount,
+      'currentRate': currentRate,
+      'initialRate': initialRate,
+      'addedDate': addedDate.toIso8601String(),
+    };
+  }
+
+  factory Currency.fromJson(Map<String, dynamic> json) {
+    return Currency(
+      code: json['code'],
+      name: json['name'],
+      amount: json['amount'],
+      currentRate: json['currentRate'],
+      initialRate: json['initialRate'],
+      addedDate: DateTime.parse(json['addedDate']),
+    );
+  }
+} 
