@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/currency_service.dart';
+import '../widgets/custom_refresh_indicator.dart';
 
 class LiveRatesScreen extends StatefulWidget {
   const LiveRatesScreen({super.key});
@@ -67,49 +68,52 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 120.0,
-            floating: true,
-            pinned: true,
-            stretch: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text('Canlı Döviz Kurları'),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.7),
-                    ],
+      body: CustomRefreshIndicator(
+        onRefresh: _fetchRates,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120.0,
+              floating: true,
+              pinned: true,
+              stretch: true,
+              flexibleSpace: FlexibleSpaceBar(
+                title: const Text('Canlı Döviz Kurları'),
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Theme.of(context).primaryColor,
+                        Theme.of(context).primaryColor.withOpacity(0.7),
+                      ],
+                    ),
                   ),
                 ),
               ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _fetchRates,
+                ),
+              ],
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: _fetchRates,
-              ),
-            ],
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16),
-            sliver: _isLoading
-                ? const SliverFillRemaining(
-                    child: Center(
-                      child: CircularProgressIndicator(),
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: _isLoading
+                  ? const SliverFillRemaining(
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : SliverList(
+                      delegate: SliverChildListDelegate(_buildCurrencyCards()),
                     ),
-                  )
-                : SliverList(
-                    delegate: SliverChildListDelegate(_buildCurrencyCards()),
-                  ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
