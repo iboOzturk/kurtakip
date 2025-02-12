@@ -57,7 +57,18 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  Rx<int> _selectedIndex = 0.obs;
+  final PortfolioController _portfolioController = Get.find();
+
+  @override
+  void initState() {
+    super.initState();
+    ever(_selectedIndex, (index) {
+      if (index == 1) {
+        _portfolioController.updateRates();
+      }
+    });
+  }
 
   final List<Widget> _screens = [
     const LiveRatesScreen(),
@@ -68,29 +79,27 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.currency_exchange),
-            label: 'Canlı Kurlar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet),
-            label: 'Portföyüm',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: 'Ayarlar',
-          ),
-        ],
-      ),
+      body: Obx(() => _screens[_selectedIndex.value]),
+        bottomNavigationBar: Obx(() => NavigationBar(
+      selectedIndex: _selectedIndex.value,
+      onDestinationSelected: (index) {
+        _selectedIndex.value = index;
+      },
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.currency_exchange),
+          label: 'Canlı Kurlar',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.account_balance_wallet),
+          label: 'Portföyüm',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.settings),
+          label: 'Ayarlar',
+        ),
+      ],
+    )),
     );
   }
 }

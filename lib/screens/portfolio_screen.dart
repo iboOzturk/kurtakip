@@ -20,6 +20,12 @@ class PortfolioScreen extends StatelessWidget {
             expandedHeight: 160.0,
             floating: false,
             pinned: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                onPressed: () => controller.updateRates(),
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -105,11 +111,14 @@ class PortfolioScreen extends StatelessWidget {
                           onDismissed: (direction) {
                             controller.removeCurrency(index);
                           },
-                          child: Hero(
-                            tag: 'currency_${controller.currencies[index].code}',
-                            child: CurrencyListItem(
-                              currency: controller.currencies[index],
-                              index: index,
+                          child: RefreshIndicator(
+                            onRefresh: controller.updateRates,
+                            child: Hero(
+                              tag: 'currency_${controller.currencies[index].code}',
+                              child: CurrencyListItem(
+                                currency: controller.currencies[index],
+                                index: index,
+                              ),
                             ),
                           ),
                         );

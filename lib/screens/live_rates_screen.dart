@@ -14,40 +14,47 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
   final CurrencyService _currencyService = CurrencyService();
   Map<String, dynamic>? _rates;
   bool _isLoading = true;
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
+  late AnimationController _shimmerController;
+  late Animation<double> _shimmerAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 500),
+
+    _shimmerController = AnimationController(
+      duration: const Duration(seconds: 1),
       vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+    )..repeat(reverse: true);
+
+    _shimmerAnimation = Tween<double>(begin: 0.3, end: 0.8).animate(_shimmerController);
+
     _fetchRates();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
   Future<void> _fetchRates() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final rates = await _currencyService.getLiveRates();
+      await Future.delayed(const Duration(seconds: 1));
+
       setState(() {
         _rates = rates;
         _isLoading = false;
       });
-      _controller.forward(from: 0.0);
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -80,7 +87,10 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
               pinned: true,
               stretch: true,
               flexibleSpace: FlexibleSpaceBar(
-                title:  Text('Canlı Döviz Kurları',style: GoogleFonts.nunitoSans(fontWeight: FontWeight.bold),),
+                title: Text(
+                  'Canlı Döviz Kurları',
+                  style: GoogleFonts.nunitoSans(fontWeight: FontWeight.bold),
+                ),
                 background: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -104,17 +114,39 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
             SliverPadding(
               padding: const EdgeInsets.all(16),
               sliver: _isLoading
-                  ? const SliverFillRemaining(
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
+                  ? SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildShimmerCard(),
+                  childCount: 4,
+                ),
+              )
                   : SliverList(
-                      delegate: SliverChildListDelegate(_buildCurrencyCards()),
-                    ),
+                delegate: SliverChildListDelegate(_buildCurrencyCards()),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerCard() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: AnimatedBuilder(
+        animation: _shimmerAnimation,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _shimmerAnimation.value,
+            child: Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey[300], // Placeholder rengi
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -128,51 +160,41 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
       if (data == null) return const SizedBox.shrink();
 
       final double change = double.tryParse(data['degisim'] ?? '0') ?? 0;
-      final bool isPositive = change >= 0;
 
-      return FadeTransition(
-        opacity: _fadeAnimation,
-        child: Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              // Gelecekte detay sayfası için
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      return Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _getCurrencyName(code),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      _buildChangeIndicator(change),
-                    ],
+                  Text(
+                    _getCurrencyName(code),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const Divider(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildRateColumn('Alış', data['alis'], Colors.green),
-                      _buildRateColumn('Satış', data['satis'], Colors.red),
-                      _buildRateColumn('En Düşük', data['dusuk'], Colors.blue),
-                      _buildRateColumn('En Yüksek', data['yuksek'], Colors.orange),
-                    ],
-                  ),
+                  _buildChangeIndicator(change),
                 ],
               ),
-            ),
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildRateColumn('Alış', data['alis'], Colors.green),
+                  _buildRateColumn('Satış', data['satis'], Colors.red),
+                  _buildRateColumn('En Düşük', data['dusuk'], Colors.blue),
+                  _buildRateColumn('En Yüksek', data['yuksek'], Colors.orange),
+                ],
+              ),
+            ],
           ),
         ),
       );
@@ -188,7 +210,6 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             isPositive ? Icons.arrow_upward : Icons.arrow_downward,
@@ -212,36 +233,14 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
-        ),
+        Text(label, style: TextStyle(color: Colors.grey[600])),
         const SizedBox(height: 4),
-        Text(
-          '$value ₺',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-        ),
+        Text('$value ₺', style: TextStyle(fontWeight: FontWeight.bold, color: color)),
       ],
     );
   }
 
   String _getCurrencyName(String code) {
-    switch (code) {
-      case 'USDTRY':
-        return 'USD/TRY';
-      case 'EURTRY':
-        return 'EUR/TRY';
-      case 'GBPTRY':
-        return 'GBP/TRY';
-      case 'ALTIN':
-        return 'Altın';
-      default:
-        return code;
-    }
+    return {'USDTRY': 'USD/TRY', 'EURTRY': 'EUR/TRY', 'GBPTRY': 'GBP/TRY', 'ALTIN': 'Altın'}[code] ?? code;
   }
-} 
+}
