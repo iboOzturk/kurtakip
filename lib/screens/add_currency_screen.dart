@@ -11,11 +11,12 @@ class AddCurrencyScreen extends StatefulWidget {
 
 class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _selectedCode = 'USD';
   final _amountController = TextEditingController();
   final _currencyService = CurrencyService();
   bool _isLoading = false;
   double? _currentRate;
+  AssetType _selectedType = AssetType.currency;
+  String _selectedCode = 'USD';
 
   final Map<String, String> _currencyCodes = {
     'USD': 'Amerikan Doları',
@@ -23,20 +24,31 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
     'GBP': 'İngiliz Sterlini',
   };
 
+  final Map<String, String> _goldCodes = {
+    'ALTIN': 'Gram Altın',
+    'CEYREK_YENI': 'Çeyrek Altın',
+    'YARIM_YENI': 'Yarım Altın',
+    'TEK_YENI': 'Tam Altın',
+    'ATA_YENI': 'Cumhuriyet Altını',
+  };
+
   @override
   void initState() {
     super.initState();
-    _fetchCurrentRate(_selectedCode);
+    _fetchCurrentRate();
   }
 
-  Future<void> _fetchCurrentRate(String currencyCode) async {
+  Future<void> _fetchCurrentRate() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
       final rates = await _currencyService.getLiveRates();
-      String apiKey = '${currencyCode}TRY';
+      String apiKey = _selectedType == AssetType.currency 
+          ? '${_selectedCode}TRY' 
+          : _selectedCode;
+          
       if (rates.containsKey(apiKey)) {
         setState(() {
           _currentRate = double.tryParse(rates[apiKey]['satis'].toString());
@@ -59,177 +71,153 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: const Text('Döviz Ekle'),
-        elevation: 0,
+        title: Text(_selectedType == AssetType.currency 
+            ? 'Döviz Ekle' 
+            : 'Altın Ekle'),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.currency_exchange,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Yeni Döviz Ekle',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Döviz Bilgileri',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        SegmentedButton<AssetType>(
+                          segments: const [
+                            ButtonSegment(
+                              value: AssetType.currency,
+                              icon: Icon(Icons.currency_exchange),
+                              label: Text('Döviz'),
                             ),
-                            const SizedBox(height: 16),
-                            DropdownButtonFormField<String>(
-                              value: _selectedCode,
-                              decoration: InputDecoration(
-                                labelText: 'Döviz Türü',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                prefixIcon: const Icon(Icons.money),
-                              ),
-                              items: _currencyCodes.entries.map((entry) {
-                                return DropdownMenuItem(
-                                  value: entry.key,
-                                  child: Text('${entry.key} - ${entry.value}'),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedCode = value!;
-                                });
-                                _fetchCurrentRate(value!);
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _amountController,
-                              decoration: InputDecoration(
-                                labelText: 'Miktar',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                prefixIcon: const Icon(Icons.calculate),
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Lütfen miktar giriniz';
-                                }
-                                return null;
-                              },
+                            ButtonSegment(
+                              value: AssetType.gold,
+                              icon: Icon(Icons.monetization_on),
+                              label: Text('Altın'),
                             ),
                           ],
+                          selected: {_selectedType},
+                          onSelectionChanged: (Set<AssetType> newSelection) {
+                            setState(() {
+                              _selectedType = newSelection.first;
+                              _selectedCode = _selectedType == AssetType.currency
+                                  ? 'USD'
+                                  : 'ALTIN';
+                              _fetchCurrentRate();
+                            });
+                          },
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: _selectedCode,
+                          decoration: InputDecoration(
+                            labelText: _selectedType == AssetType.currency
+                                ? 'Döviz Türü'
+                                : 'Altın Türü',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          items: (_selectedType == AssetType.currency
+                                  ? _currencyCodes
+                                  : _goldCodes)
+                              .entries
+                              .map((entry) {
+                            return DropdownMenuItem(
+                              value: entry.key,
+                              child: Text('${entry.value}'),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedCode = value!;
+                              _fetchCurrentRate();
+                            });
+                          },
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    if (_isLoading)
-                      const Center(child: CircularProgressIndicator())
-                    else if (_currentRate != null)
-                      Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _amountController,
+                          decoration: InputDecoration(
+                            labelText: _selectedType == AssetType.currency
+                                ? 'Miktar'
+                                : 'Adet/Gram',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Lütfen miktar giriniz';
+                            }
+                            return null;
+                          },
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
+                        const SizedBox(height: 16),
+                        if (_isLoading)
+                          const CircularProgressIndicator()
+                        else if (_currentRate != null)
+                          Column(
                             children: [
                               Text(
-                                'Güncel Kur Bilgisi',
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                'Güncel Kur',
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '1 $_selectedCode = ',
-                                    style: Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                  Text(
-                                    '${_currentRate!.toStringAsFixed(4)} TL',
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                          color: Theme.of(context).colorScheme.primary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ],
+                              Text(
+                                '${_currentRate!.toStringAsFixed(2)} ₺',
+                                style: Theme.of(context).textTheme.headlineSmall,
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: _isLoading || _currentRate == null
-                          ? null
-                          : () {
-                              if (_formKey.currentState!.validate()) {
-                                final currency = Currency(
-                                  code: _selectedCode,
-                                  name: _currencyCodes[_selectedCode]!,
-                                  amount: double.parse(_amountController.text),
-                                  currentRate: _currentRate!,
-                                );
-                                Navigator.pop(context, currency);
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Ekle'),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _isLoading || _currentRate == null
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            final currency = Currency(
+                              code: _selectedCode,
+                              name: _selectedType == AssetType.currency
+                                  ? _currencyCodes[_selectedCode]!
+                                  : _goldCodes[_selectedCode]!,
+                              amount: double.parse(_amountController.text),
+                              currentRate: _currentRate!,
+                              type: _selectedType,
+                            );
+                            Navigator.pop(context, currency);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Ekle'),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

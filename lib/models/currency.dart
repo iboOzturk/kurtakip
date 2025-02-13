@@ -1,3 +1,8 @@
+enum AssetType {
+  currency,
+  gold,
+}
+
 class Currency {
   final String code;
   final String name;
@@ -5,6 +10,7 @@ class Currency {
   final double currentRate;
   final double initialRate;
   final DateTime addedDate;
+  final AssetType type;
 
   Currency({
     required this.code,
@@ -13,6 +19,7 @@ class Currency {
     required this.currentRate,
     double? initialRate,
     DateTime? addedDate,
+    this.type = AssetType.currency,
   })  : initialRate = initialRate ?? currentRate,
         addedDate = addedDate ?? DateTime.now();
 
@@ -32,6 +39,7 @@ class Currency {
       'currentRate': currentRate,
       'initialRate': initialRate,
       'addedDate': addedDate.toIso8601String(),
+      'type': type.toString(),
     };
   }
 
@@ -43,6 +51,10 @@ class Currency {
       currentRate: json['currentRate'],
       initialRate: json['initialRate'],
       addedDate: DateTime.parse(json['addedDate']),
+      type: AssetType.values.firstWhere(
+        (e) => e.toString() == json['type'],
+        orElse: () => AssetType.currency,
+      ),
     );
   }
 } 

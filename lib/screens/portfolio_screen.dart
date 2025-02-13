@@ -83,7 +83,7 @@ class PortfolioScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            'Henüz döviz eklenmemiş',
+                            'Henüz döviz veya altın eklenmemiş',
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 16,
@@ -142,7 +142,7 @@ class PortfolioScreen extends StatelessWidget {
           }
         },
         icon: const Icon(Icons.add),
-        label: const Text('Döviz Ekle'),
+        label: const Text('Ekle'),
       ),
     );
   }
