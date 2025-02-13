@@ -8,6 +8,7 @@ import 'screens/portfolio_screen.dart';
 import 'screens/settings_screen.dart';
 import 'controllers/portfolio_controller.dart';
 import 'controllers/theme_controller.dart';
+import 'services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +16,13 @@ void main() async {
   // SharedPreferences'ı başlat
   final prefs = await SharedPreferences.getInstance();
   
-  // Controller'ları başlat
+
+  Get.put(StorageService(prefs));
+  
+  // PortfolioController'ı kaydet
   Get.put(PortfolioController());
+  
+  // Controller'ları başlat
   Get.put(ThemeController(prefs));
   
   runApp(const MyApp());
