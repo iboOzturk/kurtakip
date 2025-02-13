@@ -96,13 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // Kullanım koşulları sayfasını aç
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.code),
-            title: const Text('Açık Kaynak Lisansları'),
-            onTap: () {
-              showLicensePage(context: context);
-            },
-          ),
+
         ],
       ),
     );

@@ -56,12 +56,12 @@ class PortfolioScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Obx(() => Text(
-                            '${controller.totalValue.toStringAsFixed(2)} ₺',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          )),
+                        '${controller.formatNumber(controller.totalValue.value)} ₺',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )),
                     ],
                   ),
                 ),

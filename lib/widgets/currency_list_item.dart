@@ -68,7 +68,7 @@ class CurrencyListItem extends StatelessWidget {
                     child: Text(
                       '${currency.amount} ${currency.code}',
                       style: TextStyle(
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -92,7 +92,7 @@ class CurrencyListItem extends StatelessWidget {
                       Text(
                         '${currency.initialRate.toStringAsFixed(4)} ₺',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.grey[800],
+                              color: Theme.of(context).colorScheme.secondary,
                               fontWeight: FontWeight.bold,
                             ),
                       ),

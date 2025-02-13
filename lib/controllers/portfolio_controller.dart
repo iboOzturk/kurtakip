@@ -13,6 +13,13 @@ class PortfolioController extends GetxController {
     updateRates();
   }
 
+  String formatNumber(double number) {
+    List<String> parts = number.toStringAsFixed(2).split('.');
+    parts[0] = parts[0].replaceAllMapped(
+        RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match match) => '${match[1]}.');
+    return '${parts[0]},${parts[1]}';
+  }
+
   void addCurrency(Currency currency) {
     currencies.add(currency);
     calculateTotal();

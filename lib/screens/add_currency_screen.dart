@@ -59,6 +59,7 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         title: const Text('Döviz Ekle'),
         elevation: 0,
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/currency_service.dart';
 import '../widgets/custom_refresh_indicator.dart';
+import 'currency_converter_screen.dart';
 
 class LiveRatesScreen extends StatefulWidget {
   const LiveRatesScreen({super.key});
@@ -105,6 +106,17 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
                 ),
               ),
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.calculate,color: Colors.white),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CurrencyConverterScreen(),
+                      ),
+                    );
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.refresh),
                   onPressed: _fetchRates,
