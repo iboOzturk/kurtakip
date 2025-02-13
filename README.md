@@ -2,6 +2,7 @@ Uygulama videosu
 https://youtu.be/rM6SruGnCDc
 
 EKRAN GÖRÜNTÜLERİ
+
 ![kurtakip_up_img_1](https://github.com/user-attachments/assets/9f70bc2f-542d-47f9-af0c-0f3bd7ca2342)
 ![kurtakip_up_img_2](https://github.com/user-attachments/assets/a7a3563c-6a0a-49c2-80c1-c72225ed1b1f)
 ![kurtakip_up_img_3](https://github.com/user-attachments/assets/a8aa7cd7-a978-4a67-9d1b-2c6b26cf8b47)
