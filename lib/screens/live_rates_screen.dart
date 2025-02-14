@@ -268,7 +268,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
 
     final alis = double.tryParse(data['alis'].toString()) ?? 0;
     final satis = double.tryParse(data['satis'].toString()) ?? 0;
-    final degisim = double.tryParse(data['degisim'].toString()) ?? 0;
+
 
     return Card(
       elevation: 4,
@@ -293,49 +293,25 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
                             fontWeight: FontWeight.bold,
                           ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.monetization_on,
-                          size: 16,
-                          color: Colors.amber[700],
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Altın',
-                          style: TextStyle(
-                            color: Colors.amber[700],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+
                   ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: degisim >= 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        degisim >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
-                        size: 16,
-                        color: degisim >= 0 ? Colors.green : Colors.red,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.monetization_on,
+                      size: 16,
+                      color: Colors.amber[700],
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Altın',
+                      style: TextStyle(
+                        color: Colors.amber[700],
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${degisim.abs().toStringAsFixed(2)}%',
-                        style: TextStyle(
-                          color: degisim >= 0 ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
