@@ -22,6 +22,13 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
     'USD': 'Amerikan Doları',
     'EUR': 'Euro',
     'GBP': 'İngiliz Sterlini',
+    'NOK': 'Norveç Kronu',
+    'DKK': 'Danimarka Kronu',
+    'SEK': 'İsveç Kronu',
+    'AUD': 'Avustralya Doları',
+    'CAD': 'Kanada Doları',
+    'SAR': 'Suudi Arabistan Riyali',
+    'JPY': 'Japon Yeni'
   };
 
   final Map<String, String> _goldCodes = {

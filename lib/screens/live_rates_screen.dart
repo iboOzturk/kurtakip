@@ -16,7 +16,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
   bool _isLoading = true;
   late TabController _tabController;
 
-  final List<String> _mainCurrencies = ['USDTRY', 'EURTRY', 'GBPTRY'];
+  final List<String> _mainCurrencies = ['USDTRY', 'EURTRY', 'GBPTRY','NOKTRY','DKKTRY','SEKTRY','AUDTRY','CADTRY','SARTRY','JPYTRY'];
   final List<String> _goldTypes = ['ALTIN', 'CEYREK_YENI', 'YARIM_YENI', 'TEK_YENI', 'ATA_YENI'];
 
   final Map<String, String> _goldNames = {
@@ -208,7 +208,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
     final satis = double.tryParse(data['satis'].toString()) ?? 0;
     final dusuk = double.tryParse(data['dusuk'].toString()) ?? 0;
     final yuksek = double.tryParse(data['yuksek'].toString()) ?? 0;
-    final degisim = double.tryParse(data['degisim'].toString()) ?? 0;
+
 
     return Card(
       elevation: 4,
@@ -224,54 +224,24 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getCurrencyName(currencyCode),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                Text(
+                  _getCurrencyName(currencyCode),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                      child: Text(
-                        currencyCode.substring(0, 3),
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: degisim >= 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        degisim >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
-                        size: 16,
-                        color: degisim >= 0 ? Colors.green : Colors.red,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${degisim.abs().toStringAsFixed(2)}%',
-                        style: TextStyle(
-                          color: degisim >= 0 ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    currencyCode.substring(0, 3),
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -433,6 +403,20 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
         return 'Euro';
       case 'GBPTRY':
         return 'İngiliz Sterlini';
+      case 'NOKTRY':
+        return 'Norveç Kronu';
+      case 'DKKTRY':
+        return 'Danimarka Kronu';
+      case 'SEKTRY':
+        return 'İsveç Kronu';
+      case 'AUDTRY':
+        return 'Avustralya Doları';
+      case 'CADTRY':
+        return 'Kanada Doları';
+      case 'SARTRY':
+        return 'Suudi Arabistan Riyali';
+      case 'JPYTRY':
+        return 'Japon Yeni';
       default:
         return code;
     }
