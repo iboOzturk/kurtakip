@@ -73,8 +73,8 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
                         const SizedBox(height: 4),
                         Text(
                           widget.currency.type == AssetType.currency
-                              ? '${widget.currency.amount} ${widget.currency.code}'
-                              : '${widget.currency.amount} Adet',
+                              ? '${controller.formatNumber(widget.currency.amount)} ${widget.currency.code}'
+                              : '${widget.currency.amount.toInt()} Adet',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Theme.of(context)
                                     .textTheme
@@ -92,7 +92,7 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
                       Text(
                         controller.hideValues.value
                             ? '* * * * * ₺'
-                            : '${widget.currency.totalValueInTRY.toStringAsFixed(2)} ₺',
+                            : '${controller.formatNumber(widget.currency.totalValueInTRY)} ₺',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
