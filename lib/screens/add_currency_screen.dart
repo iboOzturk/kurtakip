@@ -33,6 +33,7 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
 
   final Map<String, String> _goldCodes = {
     'ALTIN': 'Gram Altın',
+    'AYAR22': '22 Ayar Altın',
     'CEYREK_YENI': 'Çeyrek Altın',
     'YARIM_YENI': 'Yarım Altın',
     'TEK_YENI': 'Tam Altın',

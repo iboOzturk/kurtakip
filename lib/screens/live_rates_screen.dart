@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controllers/portfolio_controller.dart';
 import '../services/currency_service.dart';
 
 import 'currency_converter_screen.dart';
@@ -17,10 +19,11 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
   late TabController _tabController;
 
   final List<String> _mainCurrencies = ['USDTRY', 'EURTRY', 'GBPTRY','NOKTRY','DKKTRY','SEKTRY','AUDTRY','CADTRY','SARTRY','JPYTRY'];
-  final List<String> _goldTypes = ['ALTIN', 'CEYREK_YENI', 'YARIM_YENI', 'TEK_YENI', 'ATA_YENI'];
+  final List<String> _goldTypes = ['ALTIN','AYAR22', 'CEYREK_YENI', 'YARIM_YENI', 'TEK_YENI', 'ATA_YENI'];
 
   final Map<String, String> _goldNames = {
     'ALTIN': 'Gram Altın',
+    'AYAR22': '22 Ayar Altın',
     'CEYREK_YENI': 'Çeyrek Altın',
     'YARIM_YENI': 'Yarım Altın',
     'TEK_YENI': 'Tam Altın',
@@ -350,6 +353,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
   }
 
   Widget _buildRateColumn(String label, double value, Color color) {
+    final PortfolioController controller = Get.find();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -361,7 +365,7 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
         ),
         const SizedBox(height: 4),
         Text(
-          value.toStringAsFixed(2),
+          controller.formatNumber(value),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: color,
                 fontWeight: FontWeight.bold,
