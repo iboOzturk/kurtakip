@@ -5,9 +5,19 @@ import '../models/currency.dart';
 
 class StorageService {
   static const String _portfolioKey = 'portfolio';
+  static const String _hideValuesKey = 'hide_values';
   final SharedPreferences _prefs;
 
+
   StorageService(this._prefs);
+
+  Future<void> setHideValues(bool hide) async {
+    await _prefs.setBool(_hideValuesKey, hide);
+  }
+
+  bool getHideValues() {
+    return _prefs.getBool(_hideValuesKey) ?? false;
+  }
 
   Future<void> savePortfolio(List<Currency> portfolio) async {
     final List<String> encodedPortfolio = portfolio

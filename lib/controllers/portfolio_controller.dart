@@ -8,10 +8,12 @@ class PortfolioController extends GetxController {
   final RxDouble totalValue = 0.0.obs;
   final CurrencyService _currencyService = CurrencyService();
   final StorageService _storageService = Get.find<StorageService>();
+  final RxBool hideValues = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    hideValues.value = _storageService.getHideValues();
     _loadPortfolio();
     updateRates();
   }
@@ -89,5 +91,10 @@ class PortfolioController extends GetxController {
     } catch (e) {
       print('Kurlar güncellenirken hata: $e');
     }
+  }
+
+  void toggleHideValues() {
+    hideValues.value = !hideValues.value;
+    _storageService.setHideValues(hideValues.value);
   }
 } 

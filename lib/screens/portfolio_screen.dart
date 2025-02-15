@@ -21,6 +21,15 @@ class PortfolioScreen extends StatelessWidget {
             floating: false,
             pinned: true,
             actions: [
+              Obx(() => IconButton(
+                    icon: Icon(
+                      controller.hideValues.value
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.white,
+                    ),
+                    onPressed: controller.toggleHideValues,
+                  )),
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.white),
                 onPressed: () => controller.updateRates(),
@@ -42,26 +51,39 @@ class PortfolioScreen extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                       Text('Portföyüm',style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                      Text(
+                        'Portföyüm',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
                       const SizedBox(height: 20),
                       Text(
                         'Toplam Değer',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
                               color: Colors.white70,
                             ),
                       ),
                       const SizedBox(height: 8),
                       Obx(() => Text(
-                        '${controller.formatNumber(controller.totalValue.value)} ₺',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )),
+                            controller.hideValues.value
+                                ? '* * * * * ₺'
+                                : '${controller.formatNumber(controller.totalValue.value)} ₺',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          )),
                     ],
                   ),
                 ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/currency.dart';
 import '../controllers/portfolio_controller.dart';
-import '../screens/edit_currency_screen.dart';
 import 'package:intl/intl.dart';
 
 class CurrencyListItem extends StatefulWidget {
@@ -35,7 +34,7 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      child: InkWell(
+      child: Obx(() => InkWell(
         onTap: () {
           setState(() {
             _isExpanded = !_isExpanded;
@@ -91,7 +90,9 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${widget.currency.totalValueInTRY.toStringAsFixed(2)} ₺',
+                        controller.hideValues.value
+                            ? '* * * * * ₺'
+                            : '${widget.currency.totalValueInTRY.toStringAsFixed(2)} ₺',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -147,8 +148,12 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
                       child: _buildValueColumn(
                         context,
                         'Alış Değeri',
-                        widget.currency.initialValueInTRY,
-                        widget.currency.initialRate,
+                        controller.hideValues.value
+                            ? '* * * * *'
+                            : widget.currency.initialValueInTRY.toStringAsFixed(2),
+                        controller.hideValues.value
+                            ? '* * * * *'
+                            : widget.currency.initialRate.toStringAsFixed(2),
                         isDarkMode,
                       ),
                     ),
@@ -157,8 +162,12 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
                       child: _buildValueColumn(
                         context,
                         'Güncel Değer',
-                        widget.currency.totalValueInTRY,
-                        widget.currency.currentRate,
+                        controller.hideValues.value
+                            ? '* * * * *'
+                            : widget.currency.totalValueInTRY.toStringAsFixed(2),
+                        controller.hideValues.value
+                            ? '* * * * *'
+                            : widget.currency.currentRate.toStringAsFixed(2),
                         isDarkMode,
                         isCurrentValue: true,
                       ),
@@ -197,15 +206,15 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 
   Widget _buildValueColumn(
     BuildContext context,
     String label,
-    double totalValue,
-    double rate,
+    String totalValue,
+    String rate,
     bool isDarkMode, {
     bool isCurrentValue = false,
   }) {
@@ -238,7 +247,7 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
           ),
           const SizedBox(height: 4),
           Text(
-            '${totalValue.toStringAsFixed(2)} ₺',
+            totalValue,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: isCurrentValue ? Colors.blue : null,
@@ -246,7 +255,7 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Birim: ${rate.toStringAsFixed(2)} ₺',
+            'Birim: $rate',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context)
                       .textTheme
@@ -260,68 +269,4 @@ class _CurrencyListItemState extends State<CurrencyListItem> {
     );
   }
 
-  void _showOptions(BuildContext context, PortfolioController controller) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Düzenle'),
-              onTap: () async {
-                Navigator.pop(context);
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditCurrencyScreen(currency: widget.currency),
-                  ),
-                );
-                if (result != null && result is Currency) {
-                  controller.updateCurrency(widget.index, result);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Sil', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteConfirmation(context, controller);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(BuildContext context, PortfolioController controller) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Döviz Sil'),
-        content: Text('${widget.currency.code} dövizini silmek istediğinize emin misiniz?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () {
-              controller.removeCurrency(widget.index);
-              Navigator.pop(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Sil'),
-          ),
-        ],
-      ),
-    );
-  }
 } 
