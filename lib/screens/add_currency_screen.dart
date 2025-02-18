@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/currency.dart';
 import '../services/currency_service.dart';
+import 'package:intl/intl.dart';
 
 class AddCurrencyScreen extends StatefulWidget {
   const AddCurrencyScreen({super.key});
@@ -12,11 +13,14 @@ class AddCurrencyScreen extends StatefulWidget {
 class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
+  final _initialRateController = TextEditingController();
   final _currencyService = CurrencyService();
   bool _isLoading = false;
+  bool _isHistorical = false;
   double? _currentRate;
   AssetType _selectedType = AssetType.currency;
   String _selectedCode = 'USD';
+  DateTime _purchaseDate = DateTime.now();
 
   final Map<String, String> _currencyCodes = {
     'USD': 'Amerikan Doları',
@@ -157,49 +161,87 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextFormField(
-                          controller: _amountController,
-                          decoration: InputDecoration(
-                            labelText: _selectedType == AssetType.currency
-                                ? 'Miktar'
-                                : 'Adet/Gram',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Lütfen miktar giriniz';
-                            }
-                            return null;
+                        SwitchListTile(
+                          title: const Text('Geçmiş Alım'),
+                          subtitle: const Text('Önceden alınmış varlık için'),
+                          value: _isHistorical,
+                          onChanged: (value) {
+                            setState(() {
+                              _isHistorical = value;
+                              if (!value) {
+                                _initialRateController.text = '';
+                                _purchaseDate = DateTime.now();
+                              }
+                            });
                           },
                         ),
-                        const SizedBox(height: 16),
-                        if (_isLoading)
-                          const CircularProgressIndicator()
-                        else if (_currentRate != null)
-                          Column(
-                            children: [
-                              Text(
-                                'Güncel Kur',
-                                style: Theme.of(context).textTheme.titleMedium,
+                        if (_isHistorical) ...[
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _initialRateController,
+                            decoration: InputDecoration(
+                              labelText: 'Alış Kuru (TL)',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${_currentRate!.toStringAsFixed(2)} ₺',
-                                style: Theme.of(context).textTheme.headlineSmall,
-                              ),
-                            ],
+                              prefixIcon: const Icon(Icons.price_change),
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Lütfen alış kurunu giriniz';
+                              }
+                              if (double.tryParse(value) == null) {
+                                return 'Geçerli bir sayı giriniz';
+                              }
+                              return null;
+                            },
                           ),
+                          const SizedBox(height: 16),
+                          InkWell(
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: _purchaseDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null && picked != _purchaseDate) {
+                                setState(() {
+                                  _purchaseDate = picked;
+                                });
+                              }
+                            },
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'Alış Tarihi',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                prefixIcon: const Icon(Icons.calendar_today),
+                              ),
+                              child: Text(
+                                DateFormat('dd.MM.yyyy').format(_purchaseDate),
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (!_isHistorical && _currentRate != null) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            'Güncel Kur: ${_currentRate!.toStringAsFixed(2)} ₺',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: _isLoading || _currentRate == null
+                  onPressed: _isLoading || (_currentRate == null && !_isHistorical)
                       ? null
                       : () {
                           if (_formKey.currentState!.validate()) {
@@ -210,6 +252,12 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
                                   : _goldCodes[_selectedCode]!,
                               amount: double.parse(_amountController.text),
                               currentRate: _currentRate!,
+                              initialRate: _isHistorical 
+                                  ? double.parse(_initialRateController.text)
+                                  : _currentRate!,
+                              addedDate: _isHistorical 
+                                  ? _purchaseDate
+                                  : DateTime.now(),
                               type: _selectedType,
                             );
                             Navigator.pop(context, currency);
@@ -234,6 +282,7 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
   @override
   void dispose() {
     _amountController.dispose();
+    _initialRateController.dispose();
     super.dispose();
   }
 } 

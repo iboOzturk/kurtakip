@@ -71,7 +71,7 @@ class PortfolioController extends GetxController {
             : currency.code;
         
         if (rates.containsKey(apiKey)) {
-          final newRate = double.tryParse(rates[apiKey]['satis'].toString());
+          final newRate = double.tryParse(rates[apiKey]['alis'].toString());
           if (newRate != null) {
             currencies[i] = Currency(
               code: currency.code,
