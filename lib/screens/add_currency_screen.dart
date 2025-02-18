@@ -163,6 +163,29 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        TextFormField(
+                          controller: _amountController,
+                          decoration: InputDecoration(
+                            labelText: _selectedType == AssetType.currency
+                                ? 'Miktar'
+                                : 'Adet/Gram',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.money),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Lütfen miktar giriniz';
+                            }
+                            if (double.tryParse(value) == null) {
+                              return 'Geçerli bir sayı giriniz';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
                         SwitchListTile(
                           title: const Text('Geçmiş Alım'),
                           subtitle: const Text('Önceden alınmış varlık için'),
@@ -188,8 +211,9 @@ class _AddCurrencyScreenState extends State<AddCurrencyScreen> {
                               ),
                               prefixIcon: const Icon(Icons.price_change),
                             ),
-                            keyboardType: TextInputType.number,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             validator: (value) {
+                              if (!_isHistorical) return null;
                               if (value == null || value.isEmpty) {
                                 return 'Lütfen alış kurunu giriniz';
                               }
