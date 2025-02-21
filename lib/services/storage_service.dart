@@ -6,6 +6,7 @@ import '../models/currency.dart';
 class StorageService {
   static const String _portfolioKey = 'portfolio';
   static const String _hideValuesKey = 'hide_values';
+  static const String _favoriteRatesKey = 'favoriteRates';
   final SharedPreferences _prefs;
 
 
@@ -35,5 +36,13 @@ class StorageService {
     return encodedPortfolio
         .map((item) => Currency.fromJson(jsonDecode(item)))
         .toList();
+  }
+
+  Future<void> saveFavoriteRates(List<String> codes) async {
+    await _prefs.setStringList(_favoriteRatesKey, codes);
+  }
+
+  List<String> getFavoriteRates() {
+    return _prefs.getStringList(_favoriteRatesKey) ?? [];
   }
 }

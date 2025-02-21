@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/portfolio_controller.dart';
+import 'package:intl/intl.dart';
 import '../services/currency_service.dart';
+import '../services/storage_service.dart';
 
 import 'currency_converter_screen.dart';
 
@@ -14,12 +18,22 @@ class LiveRatesScreen extends StatefulWidget {
 
 class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProviderStateMixin {
   final CurrencyService _currencyService = CurrencyService();
-  Map<String, dynamic>? _rates;
+  final StorageService _storageService = Get.find<StorageService>();
+  Map<String, dynamic> _rates = {};
   bool _isLoading = true;
+  List<String> _favoriteRates = [];
   late TabController _tabController;
+  DateTime? _lastUpdated;
 
-  final List<String> _mainCurrencies = ['USDTRY', 'EURTRY', 'GBPTRY','NOKTRY','DKKTRY','SEKTRY','AUDTRY','CADTRY','SARTRY','JPYTRY'];
-  final List<String> _goldTypes = ['ALTIN','AYAR22', 'CEYREK_YENI', 'YARIM_YENI', 'TEK_YENI', 'ATA_YENI'];
+  final List<String> _mainCurrencies = [
+    'USDTRY', 'EURTRY', 'GBPTRY', 'JPYTRY',
+    'AUDTRY', 'CADTRY', 'SARTRY', 'NOKTRY', 'DKKTRY',
+  ];
+
+  final List<String> _goldTypes = [
+    'ALTIN', 'AYAR22', 'CEYREK_YENI', 'YARIM_YENI',
+    'TEK_YENI', 'ATA_YENI',
+  ];
 
   final Map<String, String> _goldNames = {
     'ALTIN': 'Gram Altın',
@@ -33,7 +47,8 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _loadFavoriteRates();
     _fetchRates();
   }
 
@@ -47,12 +62,13 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
     setState(() {
       _isLoading = true;
     });
-
+    
     try {
-      final rates = await _currencyService.getLiveRates();
+      final newRates = await _currencyService.getLiveRates();
       setState(() {
-        _rates = rates;
+        _rates = newRates;
         _isLoading = false;
+        _lastUpdated = DateTime.now();
       });
     } catch (e) {
       setState(() {
@@ -66,50 +82,44 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
     }
   }
 
+  Future<void> _loadFavoriteRates() async {
+    _favoriteRates = await _storageService.getFavoriteRates();
+    setState(() {});
+  }
+
+  void _toggleFavorite(String code) async {
+    setState(() {
+      if (_favoriteRates.contains(code)) {
+        _favoriteRates.remove(code);
+      } else {
+        _favoriteRates.add(code);
+      }
+    });
+    await _storageService.saveFavoriteRates(_favoriteRates);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDarkMode
-                  ? [
-                      Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                      Theme.of(context).colorScheme.primary,
-                    ]
-                  : [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                    ],
-            ),
-          ),
-        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-             Text('Canlı Kurlar',style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.white,
-            ),),
-            Text(
-              'Son Güncelleme: ${DateTime.now().hour}:${DateTime.now().minute}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-            ),
+            const Text('Canlı Kurlar'),
+            if (_lastUpdated != null)
+              Text(
+                'Son güncelleme: ${DateFormat('HH:mm:ss').format(_lastUpdated!)}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.calculate,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.currency_exchange),
+            tooltip: 'Kur Dönüştürücü',
             onPressed: () {
               Navigator.push(
                 context,
@@ -120,256 +130,285 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
             },
           ),
           IconButton(
-            icon: const Icon(
-              Icons.refresh,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Yenile',
             onPressed: _fetchRates,
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDarkMode
-                  ? Theme.of(context).colorScheme.surface
-                  : Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Theme.of(context).colorScheme.secondary,
+          tabs: const [
+            Tab(
+              icon: Icon(Icons.currency_exchange),
+              text: 'Dövizler',
+            ),
+            Tab(
+              icon: Icon(Icons.monetization_on),
+              text: 'Altınlar',
+            ),
+            Tab(
+              icon: Icon(Icons.star),
+              text: 'Favoriler',
+            ),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildRatesList(_mainCurrencies),
+          _buildRatesList(_goldTypes),
+          _buildFavoritesList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatesList(List<String> codes) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return RefreshIndicator(
+      onRefresh: _fetchRates,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: codes.length,
+        itemBuilder: (context, index) {
+          final code = codes[index];
+          return _buildRateCard(code);
+        },
+      ),
+    );
+  }
+
+  Widget _buildFavoritesList() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final favoriteItems = [..._mainCurrencies, ..._goldTypes]
+        .where((code) => _favoriteRates.contains(code))
+        .toList();
+
+    if (favoriteItems.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.star_border,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Henüz favori eklemediniz',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 16,
               ),
             ),
-            child: TabBar(
-              controller: _tabController,
-              indicatorSize: TabBarIndicatorSize.label,
-              indicatorColor: Theme.of(context).colorScheme.primary,
-              labelColor: Theme.of(context).colorScheme.primary,
-              unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchRates,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: favoriteItems.length,
+        itemBuilder: (context, index) {
+          return _buildRateCard(favoriteItems[index]);
+        },
+      ),
+    );
+  }
+
+  Widget _buildRateCard(String code) {
+    if (!_rates.containsKey(code)) return const SizedBox.shrink();
+    
+    final data = _rates[code];
+    final alis = data['alis']?.toString() ?? '0.0';
+    final satis = data['satis']?.toString() ?? '0.0';
+    final isGold = _goldTypes.contains(code);
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          _showDetailSheet(context, code, data);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+
+              Expanded(
+                flex: 2,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isGold 
+                            ? Colors.amber.withOpacity(0.2)
+                            : Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        isGold ? Icons.monetization_on : Icons.currency_exchange,
+                        size: 16,
+                        color: isGold 
+                            ? Colors.amber[700]
+                            : Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isGold 
+                                ? _goldNames[code] ?? code
+                                : _getCurrencyName(code),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              tabs: [
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.currency_exchange,
-                        size: 20,
-                        color: _tabController.index == 0
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              // Orta: Alış/Satış
+              Expanded(
+                flex: 2,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Alış',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            '₺${double.parse(alis).toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      const Text('Dövizler'),
-                    ],
-                  ),
-                ),
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.monetization_on,
-                        size: 20,
-                        color: _tabController.index == 1
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Satış',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          Text(
+                            '₺${double.parse(satis).toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      const Text('Altın'),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              // Sağ taraf: Favori butonu
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: Icon(
+                  _favoriteRates.contains(code)
+                      ? Icons.star
+                      : Icons.star_border,
+                  size: 20,
+                  color: _favoriteRates.contains(code)
+                      ? Colors.amber
+                      : Colors.grey,
+                ),
+                onPressed: () => _toggleFavorite(code),
+              ),
+            ],
           ),
         ),
       ),
-      body: Container(
-        color: isDarkMode
-            ? Theme.of(context).colorScheme.surface
-            : Colors.white,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildCurrenciesTab(),
-                  _buildGoldTab(),
-                ],
-              ),
-      ),
     );
   }
 
-  Widget _buildCurrencyCard(String currencyCode) {
-    final data = _rates?[currencyCode];
-    if (data == null) return const SizedBox.shrink();
-
-    final alis = double.tryParse(data['alis'].toString()) ?? 0;
-    final satis = double.tryParse(data['satis'].toString()) ?? 0;
-    final dusuk = double.tryParse(data['dusuk'].toString()) ?? 0;
-    final yuksek = double.tryParse(data['yuksek'].toString()) ?? 0;
-
-
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+  void _showDetailSheet(BuildContext context, String code, Map<String, dynamic> data) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Padding(
+      builder: (context) => Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _getCurrencyName(currencyCode),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    currencyCode.substring(0, 3),
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
+            Text(
+              _getCurrencyName(code),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildRateColumn('Alış', alis, Colors.green),
-                _buildRateColumn('Satış', satis, Colors.red),
-                _buildRateColumn('En Düşük', dusuk, Colors.blue),
-                _buildRateColumn('En Yüksek', yuksek, Colors.orange),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGoldCard(String goldCode) {
-    final data = _rates?[goldCode];
-    if (data == null) return const SizedBox.shrink();
-
-    final alis = double.tryParse(data['alis'].toString()) ?? 0;
-    final satis = double.tryParse(data['satis'].toString()) ?? 0;
-
-
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _goldNames[goldCode] ?? goldCode,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-
-                  ],
-                ),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.monetization_on,
-                      size: 16,
-                      color: Colors.amber[700],
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Altın',
-                      style: TextStyle(
-                        color: Colors.amber[700],
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Divider(height: 24),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildRateColumn('Alış', alis, Colors.green),
-                _buildRateColumn('Satış', satis, Colors.red),
+                _buildDetailItem('En Düşük', data['dusuk']?.toString() ?? '0.0', Colors.blue),
+                _buildDetailItem('En Yüksek', data['yuksek']?.toString() ?? '0.0', Colors.orange),
               ],
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCurrenciesTab() {
-    return RefreshIndicator(
-      onRefresh: _fetchRates,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        children: _mainCurrencies.map((code) => _buildCurrencyCard(code)).toList(),
-      ),
-    );
-  }
-
-  Widget _buildGoldTab() {
-    return RefreshIndicator(
-      onRefresh: _fetchRates,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        children: _goldTypes.map((code) => _buildGoldCard(code)).toList(),
-      ),
-    );
-  }
-
-  Widget _buildRateColumn(String label, double value, Color color) {
-    final PortfolioController controller = Get.find();
+  Widget _buildDetailItem(String label, String value, Color color) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+          style: const TextStyle(color: Colors.grey),
         ),
         const SizedBox(height: 4),
         Text(
-          controller.formatNumber(value),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+          '₺${double.parse(value).toStringAsFixed(2)}',
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
       ],
     );
@@ -401,4 +440,44 @@ class _LiveRatesScreenState extends State<LiveRatesScreen> with SingleTickerProv
         return code;
     }
   }
+}
+
+class TrendPainter extends CustomPainter {
+  final List<double> trend;
+  final Color color;
+
+  TrendPainter({required this.trend, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (trend.isEmpty) return;
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    final maxValue = trend.reduce(max).abs();
+    final minValue = trend.reduce(min).abs();
+    final range = maxValue + minValue;
+    
+    final xStep = size.width / (trend.length - 1);
+    final yMiddle = size.height / 2;
+    final yScale = size.height / (range * 2);
+
+    path.moveTo(0, yMiddle - (trend.first * yScale));
+    
+    for (int i = 1; i < trend.length; i++) {
+      path.lineTo(
+        i * xStep,
+        yMiddle - (trend[i] * yScale),
+      );
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(TrendPainter oldDelegate) => true;
 }
